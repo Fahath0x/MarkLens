@@ -1,0 +1,523 @@
+/* ==========================================================================
+   Design tokens, app shell and chrome.
+   Light is the default; `[data-theme='dark']` overrides every token, which is
+   also what the HTML/PDF exports rely on.
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+  --font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', 'JetBrains Mono', Menlo, Consolas,
+    'Liberation Mono', monospace;
+
+  --bg: #f5f6f8;
+  --bg-panel: #ffffff;
+  --bg-subtle: #f0f2f5;
+  --bg-code: #f7f8fa;
+  --bg-hover: #eceef2;
+  --bg-active: #e2e7ef;
+
+  --text-1: #11161d;
+  --text-2: #4a5462;
+  --text-3: #79838f;
+
+  --border: #e3e6eb;
+  --border-strong: #ccd2da;
+  --accent: #2f6df6;
+  --accent-hover: #1d5ae6;
+  --accent-soft: #e8f0ff;
+  --accent-text: #ffffff;
+  --ok: #0f7a4d;
+  --ok-soft: #e4f6ed;
+  --warn: #a45c07;
+  --warn-soft: #fdf1de;
+  --danger: #c0392b;
+  --danger-soft: #fdeceb;
+
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow-md: 0 8px 22px rgba(16, 24, 40, 0.1);
+  --shadow-lg: 0 24px 56px rgba(16, 24, 40, 0.22);
+
+  --radius: 10px;
+  --radius-sm: 7px;
+  --radius-lg: 16px;
+
+  --sidebar-width: 274px;
+  --toc-width: 248px;
+  --topbar-height: 54px;
+
+  --hl-comment: #8b949e;
+  --hl-keyword: #a626a4;
+  --hl-string: #0a7b3e;
+  --hl-number: #b35008;
+  --hl-function: #1f5fd6;
+  --hl-attr: #7c4bd0;
+  --hl-meta: #6a737d;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #0e1116;
+  --bg-panel: #141920;
+  --bg-subtle: #1b2129;
+  --bg-code: #10151b;
+  --bg-hover: #1e242d;
+  --bg-active: #262e39;
+
+  --text-1: #e6eaf0;
+  --text-2: #a3adbb;
+  --text-3: #7b8593;
+
+  --border: #232a34;
+  --border-strong: #333c48;
+  --accent: #5b8cff;
+  --accent-hover: #7ba3ff;
+  --accent-soft: #1a2537;
+  --accent-text: #0b1220;
+  --ok: #43d08a;
+  --ok-soft: #12291f;
+  --warn: #e0a44c;
+  --warn-soft: #2c2317;
+  --danger: #f0736a;
+  --danger-soft: #2c1a19;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 10px 26px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 28px 60px rgba(0, 0, 0, 0.6);
+
+  --hl-comment: #6b7684;
+  --hl-keyword: #d9a3f5;
+  --hl-string: #8ade9f;
+  --hl-number: #f0b072;
+  --hl-function: #79b8ff;
+  --hl-attr: #b9a3f7;
+  --hl-meta: #8b949e;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text-1);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+a {
+  color: var(--accent);
+}
+
+::selection {
+  background: var(--accent-soft);
+}
+
+/* --- scrollbars ---------------------------------------------------------- */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--text-3);
+  background-clip: content-box;
+}
+
+/* --- shell --------------------------------------------------------------- */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.app-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Row layout: the view fills the space and the contents panel sits beside it. */
+.app-main {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--bg-panel);
+}
+
+/*
+ * Flex items default to `min-width: auto`, which means they refuse to shrink
+ * below their content's min-content width. A single long, unbreakable code
+ * line inside the reader is enough to widen the whole layout and push the
+ * contents panel off the right edge. Every direct child gets an explicit
+ * `min-width: 0` so the panels always fit the window; wide content (code
+ * blocks, tables) scrolls inside its own box instead.
+ */
+.app-main > * {
+  min-width: 0;
+}
+
+/* --- top bar ------------------------------------------------------------- */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: var(--topbar-height);
+  padding: 0 14px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  flex: none;
+  z-index: 20;
+}
+
+.topbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.topbar__mark {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: linear-gradient(140deg, var(--accent), #8b5cf6);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.topbar__spacer {
+  flex: 1;
+  min-width: 8px;
+}
+
+.topbar__search {
+  position: relative;
+  flex: 1;
+  max-width: 520px;
+}
+
+.topbar__search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-3);
+  pointer-events: none;
+  display: grid;
+}
+
+.topbar__search input {
+  width: 100%;
+  padding: 8px 62px 8px 33px;
+  background: var(--bg-subtle);
+  border: 1px solid transparent;
+  border-radius: 9px;
+  outline: none;
+  transition: border-color 0.14s ease, background 0.14s ease;
+}
+
+.topbar__search input:focus {
+  background: var(--bg-panel);
+  border-color: var(--accent);
+}
+
+.topbar__search .kbd {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* --- sidebar ------------------------------------------------------------- */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  width: var(--sidebar-width);
+  flex: none;
+  background: var(--bg);
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+  transition: width 0.16s ease;
+}
+
+.sidebar--collapsed {
+  width: 0;
+  border-right-color: transparent;
+}
+
+.sidebar__scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 10px 20px;
+}
+
+.sidebar__section {
+  margin-bottom: 16px;
+}
+
+.sidebar__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 0 8px 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.sidebar__footer {
+  flex: none;
+  padding: 10px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--bg);
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 7px 9px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-2);
+  font-size: 13.5px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.nav-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-1);
+}
+
+.nav-item--active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.nav-item__label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-item__count {
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-3);
+  background: var(--bg-subtle);
+  border-radius: 999px;
+  padding: 1px 7px;
+}
+
+.nav-item--active .nav-item__count {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+}
+
+/* --- table of contents --------------------------------------------------- */
+.toc-panel {
+  display: flex;
+  flex-direction: column;
+  width: var(--toc-width);
+  flex: none;
+  background: var(--bg);
+  border-left: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.toc-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 12px 8px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.toc-panel__body {
+  flex: 1;
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0 8px 24px;
+}
+
+.toc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  border-left: 1px solid var(--border);
+  margin-left: 4px;
+}
+
+.toc-item {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  padding: 5px 8px 5px 10px;
+  margin-left: -1px;
+  border: 0;
+  border-left: 2px solid transparent;
+  background: transparent;
+  color: var(--text-2);
+  font-size: 12.5px;
+  line-height: 1.4;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 0 6px 6px 0;
+}
+
+.toc-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-1);
+}
+
+.toc-item--active {
+  color: var(--accent);
+  border-left-color: var(--accent);
+  background: var(--accent-soft);
+  font-weight: 600;
+}
+
+.toc-item__num {
+  flex: none;
+  min-width: 22px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-3);
+  font-size: 11.5px;
+}
+
+.toc-item--active .toc-item__num {
+  color: var(--accent);
+}
+
+.toc-item__text {
+  min-width: 0;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  /* Long headings clamp to two lines rather than stretching the panel. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.toc-empty {
+  padding: 12px;
+  font-size: 12.5px;
+  color: var(--text-3);
+}
+
+/* --- responsive ---------------------------------------------------------- */
+
+/* On medium windows, give the article more room by slimming the library. */
+@media (max-width: 1360px) {
+  :root {
+    --sidebar-width: 236px;
+    --toc-width: 226px;
+  }
+}
+
+/*
+ * Below roughly 1000px the sidebar, article and contents panel cannot all be
+ * comfortable at once, so the contents panel steps aside. The top bar toggle
+ * still controls it at any width above this.
+ */
+@media (max-width: 1000px) {
+  .toc-panel {
+    display: none;
+  }
+}
+
+@media (max-width: 860px) {
+  .sidebar {
+    position: absolute;
+    top: var(--topbar-height);
+    bottom: 0;
+    left: 0;
+    z-index: 30;
+    box-shadow: var(--shadow-md);
+  }
+
+  .sidebar--collapsed {
+    display: none;
+  }
+}
